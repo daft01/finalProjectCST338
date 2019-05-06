@@ -68,7 +68,9 @@ public class Database{
             "CREATE TABLE " + TableNameBooks + " (" +
                     Title            + " TEXT," +
                     Author           + " TEXT," +
-                    Fee              + " REAL );";
+                    Fee              + " REAL," +
+                    Pickup           + " TEXT," +
+                    Return           + " TEXT );";
 
     public static final String DROP_TABLE =
             "DROP TABLE IF EXISTS " + TableNameUsers;
@@ -158,6 +160,8 @@ public class Database{
         cv.put(Title, title);
         cv.put(Author, author);
         cv.put(Fee, fee);
+        cv.put(Pickup, "");
+        cv.put(Return, "");
 
         db = dbHelper.getWritableDatabase();
         long rowID = db.insert(TableNameBooks, null, cv);
@@ -169,47 +173,107 @@ public class Database{
         return true;
     }
 
-//    public Book getBook(String bookName) {
-//        String where = TITLE + "= ?";
-//        String[] whereArgs = { bookName };
-//
-//        db = dbHelper.getReadableDatabase();
-//        Cursor cursor = db.query(TABLE_NAME, null,
-//                where, whereArgs,
-//                null, null, null);
-//
-//        ArrayList<Book> books = new ArrayList<Book>();
-//
-//        while (cursor.moveToNext()) {
-//            books.add(getBookFromCursor(cursor));
-//        }
-//
-//        // close db
-//        if (db != null)
-//            db.close();
-//
-//        if( books.size() == 0)
-//            return null;
-//
-//        return books.get(0);
-//    }
-//
-//    private static Book getBookFromCursor(Cursor cursor) {
-//        if (cursor == null || cursor.getCount() == 0){
-//            return null;
-//        }
-//        else {
-//            try {
+    public ArrayList<String> getBooks(String pickupTime, String returnTime) {
+
+         db = dbHelper.getReadableDatabase();
+         Cursor cursor = db.query(TableNameBooks, null, null, null, null, null, null);
+
+         ArrayList<String> books = new ArrayList<String>();
+
+        while (cursor.moveToNext()) {
+            books.add(getBookFromCursor(cursor, pickupTime, returnTime));
+         }
+
+        // close db
+        if (db != null)
+            db.close();
+
+        if( books.size() == 0)
+            return null;
+
+        return books;
+     }
+
+    private static String getBookFromCursor(Cursor cursor, String pickupTime, String returnTime) {
+        if (cursor == null || cursor.getCount() == 0){
+            return null;
+        }
+        else {
+            try {
+                String p = cursor.getString(PickupCol);
+                String r = cursor.getString(ReturnCol);
+
+                if( checkDays(p, pickupTime) < 0 ) /////////////////////////////////////////////////////// check if the day is not in the middle
+
 //                Book task = new Book(
 //                        cursor.getString(TITLE_COL),
 //                        cursor.getDouble(FEE_COL));
 //                return task;
-//            }
-//            catch(Exception e) {
-//                return null;
-//            }
-//        }
-//    }
+
+                return "";
+            }
+            catch(Exception e) {
+                return null;
+            }
+        }
+    }
+
+    public static int getMonth(String str){
+        return Integer.parseInt(str.substring(0, 2));
+    }
+
+    public static int getDay(String str){
+        return Integer.parseInt(str.substring(3, 5));
+    }
+
+    public static int getYear(String str){
+        return Integer.parseInt(str.substring(3, 5));
+    }
+
+    public static int getHour(String str){
+        return Integer.parseInt(str.substring(11, 13));
+    }
+
+    public static int getMin(String str){
+        return Integer.parseInt(str.substring(14, 16));
+    }
+
+    public static String getZone(String str){
+        return str.substring(17, 19);
+    }
+
+    public static int checkDays(String pickupTime, String returnTime){
+        int DaysinMonth[]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+                                                            ////////////// fix the years
+        int days = 0;
+        int loop = getMonth(returnTime) - getMonth(pickupTime);
+
+        if(loop < 0)
+            return -1;
+
+        for(int i=0; i<loop; i++){
+
+            days += DaysinMonth[ (getMonth(pickupTime) + i)%12 ];
+        }
+
+        days -= getDay(pickupTime);
+        days += getDay(returnTime);
+
+        double pHour = getHour(pickupTime) + (getMin(pickupTime) * .01);
+        double rHour = getHour(returnTime) + (getMin(returnTime) * .01);
+
+        if(getZone(pickupTime).equals("pm") || getZone(pickupTime).equals("PM"))
+            pHour += 12;
+
+        if(getZone(returnTime).equals("pm") || getZone(returnTime).equals("PM"))
+            pHour += 12;
+
+        if(pHour > rHour)
+            days++;
+
+        return days;
+    }
 //
 //    public Boolean updateBook(String title, Double fee) {
 //        ContentValues cv = new ContentValues();
