@@ -14,11 +14,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button CreateAccountButton = (Button)findViewById(R.id.CreateAccountButton);
+        Button PlaceHold = (Button) findViewById(R.id.PlaceHoldButton);
 
         CreateAccountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, CreateAccount.class));
+            }
+        });
+
+        PlaceHold.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, PlaceHold.class));
             }
         });
     }
