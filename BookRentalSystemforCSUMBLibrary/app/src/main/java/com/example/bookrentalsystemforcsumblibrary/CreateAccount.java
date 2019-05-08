@@ -1,14 +1,12 @@
 package com.example.bookrentalsystemforcsumblibrary;
 
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class CreateAccount extends AppCompatActivity {
@@ -63,7 +61,9 @@ public class CreateAccount extends AppCompatActivity {
                 }
 
                 if( myDB.insertUser(username,password) ) {
+
                     Toast.makeText(getApplication(), "Account was created", Toast.LENGTH_LONG).show();
+
                     startActivity(new Intent(CreateAccount.this, MainActivity.class));
                 }
                 else {

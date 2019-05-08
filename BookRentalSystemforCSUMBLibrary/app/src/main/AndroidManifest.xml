@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PlaceHold"></activity>
+        <activity android:name=".ManageSystem"></activity>
+        <activity android:name=".PlaceHold" />
         <activity android:name=".ErrorMessage" />
         <activity android:name=".CreateAccount" />
         <activity android:name=".MainActivity">

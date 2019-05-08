@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
         Button CreateAccountButton = (Button)findViewById(R.id.CreateAccountButton);
         Button PlaceHold = (Button) findViewById(R.id.PlaceHoldButton);
+        Button ManageSystemButton = (Button) findViewById(R.id.ManageSystemButton);
 
         CreateAccountButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -27,6 +28,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MainActivity.this, PlaceHold.class));
+            }
+        });
+
+        ManageSystemButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, ManageSystem.class));
             }
         });
     }
