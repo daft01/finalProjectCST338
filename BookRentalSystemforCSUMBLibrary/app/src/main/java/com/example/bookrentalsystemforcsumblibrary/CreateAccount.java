@@ -27,8 +27,8 @@ public class CreateAccount extends AppCompatActivity {
 
         myDB = new Database(this);
         createAccountButton = (Button) findViewById(R.id.createAccountButton);
-        editTextUsername = (EditText) findViewById(R.id.username);
-        editTextPassword = (EditText) findViewById(R.id.password);
+        editTextUsername = (EditText) findViewById(R.id.usernameTextView);
+        editTextPassword = (EditText) findViewById(R.id.passwordTextView);
 
         firstWrong = false;
         firstTacken = false;
@@ -95,7 +95,7 @@ public class CreateAccount extends AppCompatActivity {
                 return true;
         }
 
-        if(n == 0 || c < 3)
+        if(n < 1 || c < 3)
             return true;
 
         return false;

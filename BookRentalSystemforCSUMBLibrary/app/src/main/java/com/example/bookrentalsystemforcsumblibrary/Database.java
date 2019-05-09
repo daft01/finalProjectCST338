@@ -99,7 +99,7 @@ public class Database{
     public static final String TableNameManageSystem = "ManageSystem";
 
     public static final String TransactionSystemType  = "TransactionType";
-    public static final int TransactionCol = 0;
+    public static final int TransactionSystemTypeCol = 0;
 
     public static final String UsernameManageSystem  = "Username";
     public static final int UsernameManageSystemCol = 1;
@@ -181,16 +181,6 @@ public class Database{
         insertBook("Algorithm for Java", "K. Alice", 0.25);
     }
 
-//    public static final String CreateManageSystemTable =
-//            "CREATE TABLE " + TableNameManageSystem + " (" +
-//                    TransactionSystemType            + " TEXT," +
-//                    UsernameManageSystem           + " TEXT," +
-//                    BookTitle           + " TEXT," +
-//                    pickupManageSystem           + " TEXT," +
-//                    returnManageSystem          + " TEXT," +
-//                    reservationManageSystem          + " TEXT," +
-//                    TransactionTime              + " TEXT );";
-
     public void insertManageSystemUser(String username){
 
         ContentValues cv = new ContentValues();
@@ -206,7 +196,7 @@ public class Database{
         cv.put(TransactionTime, date);
 
         db = dbHelper.getWritableDatabase();
-        db.insert(TableNameUsers, null, cv);
+        db.insert(TableNameManageSystem, null, cv);
 
         // close db
         if (db != null)
@@ -478,6 +468,8 @@ public class Database{
         Random random = new Random();
         int num = random.nextInt(90000) + 10000;
         double f = getFee(b);
+        Log.d("Fee", Double.toString(f));
+        f = getTotalFee(f, pickupTime, returnTime);
         DateFormat df = new SimpleDateFormat("MM d yyyy, HH:mm a");
         String date = df.format(Calendar.getInstance().getTime());
 
@@ -486,55 +478,98 @@ public class Database{
         cv.put(pickupReservation, pickupTime);
         cv.put(returnReservation, returnTime);
         cv.put(reservationNumber, num);
-        cv.put(Fee, f);
 
         db = dbHelper.getWritableDatabase();
-        long rowID = db.insert(TableNameBooks, null, cv);
+        long rowID = db.insert(TableNameReservation, null, cv);
 
         // close db
         if (db != null)
             db.close();
 
-        return "Transaction Type: Hold" +
-               "\nUsername: " + u +
+        return "Username: " + u +
                "\nPickup time: " + pickupTime +
                "\nReturn Time: " + returnTime +
                "\nBook Title: " + b +
-               "\nReservation Number: " + f +
-               "\nCurrent Date/Time: " + date;
+               "\nReservation Number: " + num +
+               "\nTotal fee: " + Double.toString(f);
+    }
+
+    private static double getTotalFee(double f, String pickupTime, String returnTime){
+
+        int pMonth = getMonth(pickupTime), pDay = getDay(pickupTime), pHour = getHour(pickupTime), pMin = getMin(pickupTime);
+        int rMonth = getMonth(returnTime), rDay = getDay(returnTime), rHour = getHour(returnTime), rMin = getMin(returnTime);
+
+        if(getZone(pickupTime).equals("PM")){
+            pHour += 12;
+        }
+
+        if(getZone(returnTime).equals("PM")){
+            rHour += 12;
+        }
+
+        int DaysinMonth[]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        double count = 0;
+
+        Log.d( "pickupTime---------", Integer.toString(pMonth) + " / " + Integer.toString(pDay) + " : " + Integer.toString(pHour));
+        Log.d( "returnTime---------", Integer.toString(rMonth) + " / " + Integer.toString(rDay) + " : " + Integer.toString(rHour));
+
+        while(pMonth != rMonth || pDay != rDay || pHour != rHour){
+
+            Log.d( "pickupTime------", Integer.toString(pMonth) + " / " + Integer.toString(pDay) + " : " + Integer.toString(pHour));
+            Log.d( "returnTime------", Integer.toString(rMonth) + " / " + Integer.toString(rDay) + " : " + Integer.toString(rHour));
+
+            pHour++;
+            count++;
+
+            if(pHour == 24){
+
+                pDay++;
+                pHour = 0;
+
+                if (pDay == DaysinMonth[pMonth-1]+1) {
+
+                    pMonth++;
+                }
+            }
+        }
+
+        return count*f;
     }
 
     private double getFee(String b){
 
         db = dbHelper.getReadableDatabase();
 
-        Cursor cursor = db.query(TableNameUsers, null, null, null, null, null, null);
+        Cursor cursor = db.query(TableNameBooks, null, null, null, null, null, null);
 
         while (cursor.moveToNext()) {
             double temp = getFeeFromCursor(cursor, b);
 
-            if(temp != -1)
+            if( temp != -1)
                 return temp;
         }
+
 
         if (db != null)
             db.close();
 
         return -1;
-
     }
 
     private static double getFeeFromCursor(Cursor cursor, String b) {
+
         if (cursor == null || cursor.getCount() == 0){
             return -1;
         }
         else {
             try {
                 String title = cursor.getString(TitleCol);
+                String author = cursor.getString(AuthorCol);
+                String fee = Double.toString( cursor.getDouble(FeeCol) );
 
-                if( title.equals(b) )
-                    return cursor.getDouble(FeeCol);
-
+                    if( b.equals(title) ) {
+                        return cursor.getDouble(FeeCol);
+                    }
                 return -1;
             }
             catch(Exception e) {
@@ -571,13 +606,13 @@ public class Database{
         }
         else {
             try {
-                String transaction = cursor.getString(TransactionCol);
+                String transaction = cursor.getString(TransactionSystemTypeCol);
 
-                if(transaction.equals("New account") ){
-                    return "Trac"
+                if(transaction.equals("New account") ) {
+                    return "Transaction type: New account\n " +
+                            "Customer's username: " + cursor.getString(UsernameManageSystemCol) + "\n" +
+                            "Transaction date/time: " + cursor.getString(TransactionTimeCol ) + "\n\n";
                 }
-                if( title.equals(b) )
-                    return cursor.getDouble(FeeCol);
 
                 return "";
             }
