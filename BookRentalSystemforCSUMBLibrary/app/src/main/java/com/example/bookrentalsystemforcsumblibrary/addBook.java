@@ -41,6 +41,8 @@ public class addBook extends AppCompatActivity {
 
                         }
                     });
+                    alertDialog.show();
+                    return;
                 }
                 else if(a.isEmpty()){
                     AlertDialog alertDialog = new AlertDialog.Builder(addBook.this).create();
@@ -52,6 +54,8 @@ public class addBook extends AppCompatActivity {
 
                         }
                     });
+                    alertDialog.show();
+                    return;
                 }
                 else if(f.isEmpty()){
                     AlertDialog alertDialog = new AlertDialog.Builder(addBook.this).create();
@@ -63,19 +67,22 @@ public class addBook extends AppCompatActivity {
 
                         }
                     });
+                    alertDialog.show();
+                    return;
                 }
 
                 myDB.insertBook(t, a, Double.parseDouble(f));
 
                 AlertDialog alertDialog = new AlertDialog.Builder(addBook.this).create();
-                alertDialog.setTitle("");
-                alertDialog.setMessage("Book has been created");
+                alertDialog.setTitle("Confirm");
+                alertDialog.setMessage("Title: " + t + " Author: " + a + " Fee: " + f);
 
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         startActivity(new Intent(addBook.this, MainActivity.class));
                     }
                 });
+                alertDialog.show();
             }
         });
     }

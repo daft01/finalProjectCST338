@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".addBook"></activity>
+        <activity android:name=".CancelHold"></activity>
+        <activity android:name=".addBook" />
         <activity android:name=".ManageSystem" />
         <activity android:name=".PlaceHold" />
         <activity android:name=".ErrorMessage" />

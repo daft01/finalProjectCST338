@@ -1,13 +1,14 @@
 package com.example.bookrentalsystemforcsumblibrary;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class CreateAccount extends AppCompatActivity {
 
@@ -50,30 +51,85 @@ public class CreateAccount extends AppCompatActivity {
 
                 if( m.length() != 0 ){
 
-                    if(firstWrong)
-                        startActivity(new Intent(CreateAccount.this, ErrorMessage.class));
-                    else
-                        firstWrong = true;
+                    if(firstWrong) {
+                        AlertDialog alertDialog = new AlertDialog.Builder(CreateAccount.this).create();
+                        alertDialog.setTitle("");
+                        alertDialog.setMessage("Number of tries exceeded");
 
-                    Toast.makeText(getApplication(), m.toString(), Toast.LENGTH_LONG).show();
-                    Log.d("Account Create", "Fail");
+                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                startActivity(new Intent(CreateAccount.this, MainActivity.class));
+                            }
+                        });
+
+                        alertDialog.show();
+                        return;
+                    }
+                    else {
+                        firstWrong = true;
+                    }
+
+                    AlertDialog alertDialog = new AlertDialog.Builder(CreateAccount.this).create();
+                    alertDialog.setTitle("");
+                    alertDialog.setMessage(m.toString());
+
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+
+                    alertDialog.show();
                     return;
                 }
 
+                Log.d(".ol",m.toString());
                 if( myDB.insertUser(username,password) ) {
 
-                    Toast.makeText(getApplication(), "Account was created", Toast.LENGTH_LONG).show();
+                    AlertDialog alertDialog = new AlertDialog.Builder(CreateAccount.this).create();
+                    alertDialog.setTitle("");
+                    alertDialog.setMessage("Account was created");
 
-                    startActivity(new Intent(CreateAccount.this, MainActivity.class));
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(CreateAccount.this, MainActivity.class));
+                        }
+                    });
+
+                    alertDialog.show();
+                    return;
                 }
                 else {
 
-                    if(firstTacken)
-                        startActivity(new Intent(CreateAccount.this, ErrorMessage.class));
-                    else
-                        firstTacken = true;
+                    if(firstTacken) {
+                        AlertDialog alertDialog = new AlertDialog.Builder(CreateAccount.this).create();
+                        alertDialog.setTitle("");
+                        alertDialog.setMessage("Number of tries exceeded");
 
-                    Toast.makeText(getApplication(), "User Name is taken", Toast.LENGTH_LONG).show();
+                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                startActivity(new Intent(CreateAccount.this, MainActivity.class));
+                            }
+                        });
+
+                        alertDialog.show();
+                    }
+                    else {
+                        firstTacken = true;
+                    }
+
+                    AlertDialog alertDialog = new AlertDialog.Builder(CreateAccount.this).create();
+                    alertDialog.setTitle("");
+                    alertDialog.setMessage("User Name is taken");
+
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(CreateAccount.this, MainActivity.class));
+                        }
+                    });
+
+                    alertDialog.show();
+                    return;
                 }
             }
         });

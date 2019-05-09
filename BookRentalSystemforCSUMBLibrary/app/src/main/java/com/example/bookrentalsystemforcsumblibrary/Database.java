@@ -5,17 +5,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import java.util.Calendar;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.time.Month;
-import java.util.ArrayList;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Random;
 
 public class Database{
@@ -172,13 +167,23 @@ public class Database{
     public Database(Context context) {
         dbHelper = new DBHelper(context, DBname, null, DBversion);
 
-        insertUser("alice5", "csumb100");
-        insertUser("brian7", "123abc");
-        insertUser("chris12", "CHRIS12");
+        db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(TableNameUsers, null, null, null, null, null, null);
 
-        insertBook("Hot Java", "S. Narayanan", .05);
-        insertBook("Fun Java", "Y. Byun", 1.00);
-        insertBook("Algorithm for Java", "K. Alice", 0.25);
+        if ( !cursor.moveToFirst() ) {
+            insertUser("alice5", "csumb100");
+            insertUser("brian7", "123abc");
+            insertUser("chris12", "CHRIS12");
+        }
+
+        cursor = db.query(TableNameBooks, null, null, null, null, null, null);
+
+        if ( !cursor.moveToFirst() ) {
+            insertBook("Hot Java", "S. Narayanan", .05);
+            insertBook("Fun Java", "Y. Byun", 1.00);
+            insertBook("Algorithm for Java", "K. Alice", 0.25);
+        }
+
     }
 
     public void insertManageSystemUser(String username){
@@ -193,6 +198,72 @@ public class Database{
         cv.put(pickupManageSystem, "");
         cv.put(returnManageSystem, "");
         cv.put(reservationManageSystem, "");
+        cv.put(TransactionTime, date);
+
+        db = dbHelper.getWritableDatabase();
+        db.insert(TableNameManageSystem, null, cv);
+
+        // close db
+        if (db != null)
+            db.close();
+    }
+
+    public void insertManageSystemBook(String book){
+
+        ContentValues cv = new ContentValues();
+        DateFormat df = new SimpleDateFormat("MM d yyyy, HH:mm a");
+        String date = df.format(Calendar.getInstance().getTime());
+
+        cv.put(TransactionType, "New book");
+        cv.put(UsernameManageSystem, "");
+        cv.put(BookTitle, book);
+        cv.put(pickupManageSystem, "");
+        cv.put(returnManageSystem, "");
+        cv.put(reservationManageSystem, "");
+        cv.put(TransactionTime, date);
+
+        db = dbHelper.getWritableDatabase();
+        db.insert(TableNameManageSystem, null, cv);
+
+        // close db
+        if (db != null)
+            db.close();
+    }
+
+    public void insertManageSystemReserve(String username, String Book, String pickupTime, String returnTime, String reservationNum){
+
+        ContentValues cv = new ContentValues();
+        DateFormat df = new SimpleDateFormat("MM d yyyy, HH:mm a");
+        String date = df.format(Calendar.getInstance().getTime());
+
+        cv.put(TransactionType, "Hold");
+        cv.put(UsernameManageSystem, username);
+        cv.put(BookTitle, Book);
+        cv.put(pickupManageSystem, pickupTime);
+        cv.put(returnManageSystem, returnTime);
+        cv.put(reservationManageSystem, reservationNum);
+        cv.put(TransactionTime, date);
+
+        db = dbHelper.getWritableDatabase();
+        db.insert(TableNameManageSystem, null, cv);
+
+        // close db
+        if (db != null)
+            db.close();
+    }
+
+    public void insertManageSystemCancel(String username, String Book, String pickupTime, String returnTime, String reservationNum){
+
+        ContentValues cv = new ContentValues();
+        DateFormat df = new SimpleDateFormat("MM d yyyy, HH:mm a");
+        String date = df.format(Calendar.getInstance().getTime());
+
+        cv.put(TransactionType, "Cancel Hold");
+        cv.put(UsernameManageSystem, username);
+        cv.put(BookTitle, Book);
+        cv.put(pickupManageSystem, pickupTime);
+        cv.put(returnManageSystem, returnTime);
+        cv.put(reservationManageSystem, reservationNum);
         cv.put(TransactionTime, date);
 
         db = dbHelper.getWritableDatabase();
@@ -225,7 +296,6 @@ public class Database{
         cv.put(Username, username);
         cv.put(Password, password);
         cv.put(TransactionType, "New User");
-
 
         db = dbHelper.getWritableDatabase();
         long rowID = db.insert(TableNameUsers, null, cv);
@@ -294,11 +364,13 @@ public class Database{
                 String p = cursor.getString(pickupReservationCol);
                 String r = cursor.getString(returnReservationCol);
 
+
                 Log.d("pickup", p);
                 Log.d("return", r);
 
-                if( compareDays(r, pickupTime) == 1  || compareDays(returnTime, p) ==  1)
-                    return cursor.getString(TitleCol);
+                if( compareDays(r, pickupTime) == 1  || compareDays(returnTime, p) ==  1) {
+                    return cursor.getString(BookReservationCol);
+                }
                  return "";
              }
              catch(Exception e) {
@@ -448,7 +520,8 @@ public class Database{
             try {
                 String user = cursor.getString(UsernameCol);
                 String password = cursor.getString(PasswordCol);
-
+                Log.d("info", user);
+                Log.d("info", password);
                 if( user.equals(u) && password.equals(p))
                     return true;
 
@@ -460,7 +533,7 @@ public class Database{
         }
     }
 
-    public String createReservation(String u, String b, String pickupTime, String returnTime){
+    public String createReservation(String u, String b, String pickupTime, String returnTime) {
 
         ContentValues cv = new ContentValues();
         Calendar now = Calendar.getInstance();
@@ -479,7 +552,10 @@ public class Database{
         cv.put(returnReservation, returnTime);
         cv.put(reservationNumber, num);
 
-        db = dbHelper.getWritableDatabase();
+        insertManageSystemReserve(u, b, pickupTime, returnTime, Double.toString(num));
+
+        db = dbHelper.getReadableDatabase();
+
         long rowID = db.insert(TableNameReservation, null, cv);
 
         // close db
@@ -487,11 +563,12 @@ public class Database{
             db.close();
 
         return "Username: " + u +
-               "\nPickup time: " + pickupTime +
-               "\nReturn Time: " + returnTime +
-               "\nBook Title: " + b +
-               "\nReservation Number: " + num +
-               "\nTotal fee: " + Double.toString(f);
+                "\nPickup time: " + pickupTime +
+                "\nReturn Time: " + returnTime +
+                "\nBook Title: " + b +
+                "\nReservation Number: " + num +
+                "\nTotal fee: $" + f;
+
     }
 
     private static double getTotalFee(double f, String pickupTime, String returnTime){
@@ -583,20 +660,20 @@ public class Database{
 
         Cursor cursor = db.query(TableNameManageSystem, null, null, null, null, null, null);
 
-        StringBuilder temp = new StringBuilder();
+        String temp = "";
 
         while (cursor.moveToNext()) {
             String t = getManageSystemFromCursor(cursor);
 
             if(!t.isEmpty()) {
-                temp.append(t);
+                temp = t + temp;
             }
         }
 
         if (db != null)
             db.close();
 
-        return temp.toString();
+        return temp;
     }
 
     private static String getManageSystemFromCursor(Cursor cursor){
@@ -607,10 +684,38 @@ public class Database{
         else {
             try {
                 String transaction = cursor.getString(TransactionSystemTypeCol);
-
+//                cv.put(TransactionType, "Cancel Hold");
+//                cv.put(UsernameManageSystem, username);
+//                cv.put(BookTitle, Book);
+//                cv.put(pickupManageSystem, pickupTime);
+//                cv.put(returnManageSystem, returnTime);
+//                cv.put(reservationManageSystem, reservationNum);
+//                cv.put(TransactionTime, date);
                 if(transaction.equals("New account") ) {
                     return "Transaction type: New account\n " +
                             "Customer's username: " + cursor.getString(UsernameManageSystemCol) + "\n" +
+                            "Transaction date/time: " + cursor.getString(TransactionTimeCol ) + "\n\n";
+                }else if(transaction.equals("New book") ){
+                    return "Transaction type: New book\n " +
+                            "Book: " + cursor.getString(BookTitleCol) + "\n" +
+                            "Transaction date/time: " + cursor.getString(TransactionTimeCol ) + "\n\n";
+                }
+                else if(transaction.equals("Hold") ){
+                    return "Transaction type: Hold\n " +
+                            "Customer's username: " + cursor.getString(UsernameManageSystemCol) + "\n" +
+                            "Book: " + cursor.getString(BookTitleCol) + "\n" +
+                            "Pickup date/time: " + cursor.getString(pickupManageSystemCol) + "\n" +
+                            "Return date/time: " + cursor.getString(returnManageSystemCol) + "\n" +
+                            "Reservation Number: " + cursor.getString(reservationManageSystemCol) + "\n" +
+                            "Transaction date/time: " + cursor.getString(TransactionTimeCol ) + "\n\n";
+                }
+                else if(transaction.equals("Cancel Hold") ){
+                    return "Transaction type: Cancel Hold\n " +
+                            "Customer's username: " + cursor.getString(UsernameManageSystemCol) + "\n" +
+                            "Book: " + cursor.getString(BookTitleCol) + "\n" +
+                            "Pickup date/time: " + cursor.getString(pickupManageSystemCol) + "\n" +
+                            "Return date/time: " + cursor.getString(returnManageSystemCol) + "\n" +
+                            "Reservation Number: " + cursor.getString(reservationManageSystemCol) + "\n" +
                             "Transaction date/time: " + cursor.getString(TransactionTimeCol ) + "\n\n";
                 }
 
@@ -621,6 +726,55 @@ public class Database{
             }
         }
 
+    }
+
+    public ArrayList<Resrvation> getReservations(String u) {
+
+        db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.query(TableNameReservation, null, null, null, null, null, null);
+
+        ArrayList<Resrvation> r = new ArrayList<Resrvation>();
+
+        while (cursor.moveToNext()) {
+            Resrvation temp = getResrvationFromCursor(cursor, u);
+
+            if(temp != null)
+                r.add(temp);
+        }
+
+        // close db
+        if (db != null)
+            db.close();
+
+        return r;
+    }
+
+    private static Resrvation getResrvationFromCursor(Cursor cursor, String u) {
+        if (cursor == null || cursor.getCount() == 0){
+            return null;
+        }
+        else {
+            try {
+                if(cursor.getString(UsernameReservationCol).equals(u))
+                    return new Resrvation(cursor.getString(UsernameReservationCol), cursor.getString(BookReservationCol), cursor.getString(pickupReservationCol), cursor.getString(returnReservationCol) , cursor.getString(reservationNumberCol) , cursor.getDouble(TotalReservationCol) );
+                else
+                    return null;
+            }
+            catch(Exception e) {
+                return null;
+            }
+        }
+    }
+
+
+    public void deleteReservation( Resrvation r ){
+        db = dbHelper.getReadableDatabase();
+
+        insertManageSystemCancel(r.getUsername(), r.getBook(), r.getPickupTime(), r.getReturnTime(), r.getReservationNum());
+
+        db = dbHelper.getReadableDatabase();
+        db.execSQL("DELETE FROM " + TableNameReservation + " WHERE " + reservationNumber + "= '" + r.getReservationNum() + "'");
     }
 //
 //    public Boolean updateBook(String title, Double fee) {

@@ -49,6 +49,7 @@ public class ManageSystem extends AppCompatActivity {
                 });
 
                 alertDialog.show();
+                return;
             }
 
             String temp = myDB.manageSystem();

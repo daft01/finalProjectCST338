@@ -2,11 +2,8 @@ package com.example.bookrentalsystemforcsumblibrary;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Layout;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -168,51 +165,58 @@ public class PlaceHold extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                String u = username.getText().toString();
-                String p = password.getText().toString();
+            String u = username.getText().toString();
+            String p = password.getText().toString();
 
-                if( !myDB.confirmUser(u , p) ){
+            if( !myDB.confirmUser(u , p) ){
 
-                    if(userInfo){
-
-                        AlertDialog alertDialog = new AlertDialog.Builder(PlaceHold.this).create();
-                        alertDialog.setTitle("Error");
-                        alertDialog.setMessage("Number of tries exceeded");
-
-                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                startActivity(new Intent(PlaceHold.this, MainActivity.class));
-                            }
-                        });
-
-                        alertDialog.show();
-                    }
+                if(userInfo){
 
                     AlertDialog alertDialog = new AlertDialog.Builder(PlaceHold.this).create();
                     alertDialog.setTitle("Error");
-                    alertDialog.setMessage("Wrong username/password");
+                    alertDialog.setMessage("Number of tries exceeded");
 
                     alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(PlaceHold.this, MainActivity.class));
                         }
                     });
 
                     alertDialog.show();
-
-                    userInfo = true;
-                    return;
                 }
 
-                String reservationInfo = myDB.createReservation(u, b, pickupTime, returnTime);
+                AlertDialog alertDialog = new AlertDialog.Builder(PlaceHold.this).create();
+                alertDialog.setTitle("Error");
+                alertDialog.setMessage("Wrong username/password");
 
-                confirmLayout.setVisibility(View.VISIBLE);
-                confirmMessage.setText(reservationInfo);
-                confirmMessage.setGravity(Gravity.CENTER);
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
 
-                submit.setVisibility(View.INVISIBLE);
-                rent.setVisibility(View.INVISIBLE);
-                searchTime.setVisibility(View.INVISIBLE);
+                alertDialog.show();
 
+                userInfo = true;
+                return;
+            }
+
+            String reservationInfo = myDB.createReservation(u, b, pickupTime, returnTime);
+
+            confirmLayout.setVisibility(View.VISIBLE);
+            confirmMessage.setText(reservationInfo);
+            confirmMessage.setGravity(Gravity.CENTER);
+
+            submit.setVisibility(View.INVISIBLE);
+            rent.setVisibility(View.INVISIBLE);
+            searchTime.setVisibility(View.INVISIBLE);
+
+            }
+        });
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(PlaceHold.this, MainActivity.class));
             }
         });
     }
